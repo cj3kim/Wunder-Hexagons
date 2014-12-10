@@ -19,6 +19,8 @@ var RenderController = require("famous/views/RenderController");
 var RenderNode = require("famous/core/RenderNode");
 var Timer = require('famous/utilities/Timer');
 
+
+Transitionable = require('famous/transitions/Transitionable');
 // create the main context
 var mainContext = Engine.createContext();
 mainContext.setPerspective(300);
@@ -78,35 +80,38 @@ for(var i=0; i< hexagons.length; i += 1) {
   }
   var randomTranslation = genRanTranslation();
   stateModifier.setTransform(randomTranslation, {duration: 1500, curve: Easing.inOutSine });
-  stateModifier.setTransform(randomTranslation, {duration: 500 });
-  stateModifier.setTransform(Transform.translate(x+400, y-400, 0), { duration : 1000});
-  stateModifier.setTransform(Transform.translate(x+400, y-400, 0), { duration : 500});
-
   var chain = mainContext.add(rotateModifier).add(renderNode);
   renderController.show(surface)
 
   if (colored) {
     (function (surface, renderController) {
       surface.on('click', function () {
-        for (var i = 0; i < surfaces.length; i += 1) {
-          var s  = surfaces[i][0];
-          var rc = surfaces[i][1];
+        makeHexagonsGoPoof(surfaces);
+        //the hexagon I clicked pops up in the upper left part of the screen
+        console.log(renderController);
 
-          var fn = (function (s, rc) { 
-            return function () { 
-              Timer.setTimeout(function () {
-                rc.hide()}, getRandomArbitrary(200,2000));
-            };
-          })(s, rc);
-          if (s.colored) {
-            Timer.setTimeout(fn, 2000);
-          } else {
-            fn();
-          }
-        }
+        console.log(surface);
+        Engine.on("click", function () {
+          console.log(surface);
+          renderController.show(surface);
+        });
       });
     })(surface, renderController);
   }
+}
+
+function makeHexagonsGoPoof(surfaces) {
+    for (var i = 0; i < surfaces.length; i += 1) {
+      var s  = surfaces[i][0];
+      var rc = surfaces[i][1];
+
+      var fn = (function (s, rc) { 
+        return function () {
+          Timer.setTimeout(function () {rc.hide()}, getRandomArbitrary(200,2000)); };
+      })(s, rc);
+
+      s.colored ? Timer.setTimeout(fn, 2500) : fn();
+    }
 }
 
 Timer.setTimeout(function () {
@@ -150,7 +155,7 @@ Timer.setTimeout(function () {
 
   };
 
-}, 4000)
+}, 2000)
 //});
 
 
