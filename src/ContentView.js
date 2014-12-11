@@ -14,12 +14,18 @@ function ContentView() {
       }
     });
     var textSurfaceMod = new Modifier({
-      transform: Transform.translate(300, 100, 0)
+      transform: Transform.translate(250, 100, 0)
     });
 
     this.add(textSurfaceMod).add(textSurface);
 
     this.bubbleView  = new BubbleView();
+
+    var baseX = 600;
+    var bubbleMod = new Modifier({
+        transform: Transform.translate(baseX + 200, 50, 0)
+    });
+    this.add(bubbleMod).add(this.bubbleView);
 };
 
 ContentView.prototype = Object.create(View.prototype);
