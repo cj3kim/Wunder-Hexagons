@@ -13,7 +13,7 @@ function BubbleView() {
   View.apply(this, arguments);
 
   var self = this;
-  var bubbles = bubblify();
+  var bubbles = this.bubblify();
   var sortedBubbles = _.sortBy(bubbles, function (bubble) {
     return bubble.surface.bubble_order;
   });
@@ -43,7 +43,11 @@ function BubbleView() {
 BubbleView.prototype = Object.create(View.prototype);
 BubbleView.prototype.constructor = BubbleView;
 
-function createBubble(coordinates, size, properties) {
+BubbleView.prototype.assignBubbleEvents =  function assignBubbleEvents () {
+
+};
+
+BubbleView.prototype.createBubble = function createBubble(coordinates, size, properties) {
   var x = coordinates[0];
   var y = coordinates[1];
   var z = coordinates[2];
@@ -102,40 +106,55 @@ function createBubble(coordinates, size, properties) {
   return { renderNode:renderNode, surface: surface };
 }
 
-function bubblify () {
+BubbleView.prototype.bubblify =  function bubblify () {
   var bubbles = [];
   var properties = { backgroundColor: 'blue' , zIndex: 1000 };
-  var b1 = createBubble([-5, 34, 0], [300, 300], properties);
+
+  var b1 = this.createBubble([-5, 34, 0], [300, 300], properties);
   b1.surface.bubble_order = 6;
   bubbles.push(b1);
+  b1.surface.on('click', function () {
+    console.log('clicked 0');
+    this._eventOutput.emit('bubbleClicked', 0);
+  }.bind(this));
 
   var properties = { backgroundColor: 'red' , zIndex: 3000 };
-  var b2 = createBubble([201, 197, 0], [200, 200], properties);
+  var b2 = this.createBubble([201, 197, 0], [200, 200], properties);
   b2.surface.bubble_order = 5;
   bubbles.push(b2);
 
+  b2.surface.on('click', function () {
+    console.log('clicked 1');
+    this._eventOutput.emit('bubbleClicked', 1);
+  }.bind(this));
+
   var properties = { backgroundColor: 'green' , zIndex: 2000 };
-  var b3 = createBubble([44, 298, 0], [200, 200], properties);
+  var b3 = this.createBubble([44, 298, 0], [200, 200], properties);
   b3.surface.bubble_order = 4;
   bubbles.push(b3);
 
+  b3.surface.on('click', function () {
+    console.log('clicked 2');
+    this._eventOutput.emit('bubbleClicked', 2);
+  }.bind(this));
+
   var properties = { backgroundColor: 'purple' , zIndex: 3500 };
-  var b4 = createBubble([205, 422, 0], [75, 75], properties);
+  var b4 = this.createBubble([205, 422, 0], [75, 75], properties);
   b4.surface.bubble_order = 3;
   bubbles.push(b4);
 
   var properties = { backgroundColor: 'teal' , zIndex: 4000 };
-  var b5 = createBubble([223, 372, 0], [75, 75], properties);
+  var b5 = this.createBubble([223, 372, 0], [75, 75], properties);
   b5.surface.bubble_order = 2;
   bubbles.push(b5);
 
   var properties = { backgroundColor: 'gray' , zIndex: 3500 };
-  var b6 = createBubble([282, 377, 0], [75, 75], properties);
+  var b6 = this.createBubble([282, 377, 0], [75, 75], properties);
   b6.surface.bubble_order = 1;
   bubbles.push(b6);
 
   var properties = { backgroundColor: 'blue' , zIndex: 3000 };
-  var b7 = createBubble([264, 430, 0], [75, 75], properties);
+  var b7 = this.createBubble([264, 430, 0], [75, 75], properties);
   b7.surface.bubble_order = 0;
   bubbles.push(b7);
   return bubbles

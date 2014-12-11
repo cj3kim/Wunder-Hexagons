@@ -4,30 +4,17 @@ var Transform = require('famous/core/Transform');
 var View     = require('famous/core/View');
 var BubbleView = require('./BubbleView.js');
 var RenderController = require("famous/views/RenderController");
+var TextView = require('./TextView.js');
 
 function ContentView() {
     View.apply(this, arguments);
 
-    var renderController = new RenderController();
-
+    this.textView = new TextView();
     var textSurfaceMod = new Modifier({
       transform: Transform.translate(250, 100, 0)
     });
 
-    var textSurface = new Surface({
-        size: [500, 600]
-      , properties: {
-        backgroundColor: 'brown'
-      }
-    });
-
-    this._eventInput.on('finishedBubbling', function () {
-      console.log('finishedBubbling');
-      renderController.show(textSurface);
-    });
-
-
-    this.add(textSurfaceMod).add(renderController);
+    this.add(textSurfaceMod).add(this.textView);
 
     this.bubbleView  = new BubbleView();
     var baseX = 600;
@@ -35,7 +22,8 @@ function ContentView() {
         transform: Transform.translate(baseX + 200, 50, 0)
     });
     this.add(bubbleMod).add(this.bubbleView);
-    this.bubbleView.pipe(this)
+
+    this.bubbleView.pipe(this.textView)
 };
 
 ContentView.prototype = Object.create(View.prototype);
