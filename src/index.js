@@ -7,18 +7,20 @@ require('famous-polyfills');
 var hexagon = require('./hexagon').module;
 var grid = require('./grid').module;
 var d3 = require('d3');
+var _ = require('underscore');
 
 // import dependencies
 var Engine = require('famous/core/Engine');
 var Modifier = require('famous/core/Modifier');
 var Transform = require('famous/core/Transform');
-var Surface  = require('famous/core/Surface');
+Surface  = require('famous/core/Surface');
 var StateModifier = require('famous/modifiers/StateModifier');
 var Easing = require('famous/transitions/Easing');
 var RenderController = require("famous/views/RenderController");
 var RenderNode = require("famous/core/RenderNode");
 var Timer = require('famous/utilities/Timer');
-
+var ContentView = require('./ContentView.js');
+var EventEmitter = require('famous/core/EventEmitter');
 
 Transitionable = require('famous/transitions/Transitionable');
 // create the main context
@@ -49,11 +51,29 @@ for(var i=0; i< hexagons.length; i += 1) {
   } else {
     var d3_svg = hexagon.createSVG();
   }
+
   var surface = new Surface({
     size: [107, 114],
     content: d3_svg.node(),
     classes: ['backfaceVisibility'],
   });
+
+  if (colored) {
+    (function () {
+      surface.on('linkClick', function (ary) {
+        var _surface          = ary[0];
+        var _renderController = ary[1];
+        var _stateMod         = ary[2];
+
+        _stateMod.setTransform(Transform.translate(100,100, 0), {duration: 100}, function () {
+          _renderController.show(_surface);
+
+          var contentView = new ContentView();
+          mainContext.add(contentView);
+        });
+      });
+    })(surface);
+  }
 
   surface.d3_svg = d3_svg;
   surface.colored = colored;
@@ -72,94 +92,89 @@ for(var i=0; i< hexagons.length; i += 1) {
 
   var renderNode = new RenderNode(stateModifier);
   renderNode.add(renderController);
+  surface.renderController = renderController;
 
   surfaces.push([surface, renderController, rotateModifier, stateModifier]);
 
-  function genRanTranslation() {
-    return Transform.translate(x + getRandomArbitrary(-800, 800), y + getRandomArbitrary(-800, 800),getRandomArbitrary(-800, 800) );
-  }
+
   var randomTranslation = genRanTranslation();
-  stateModifier.setTransform(randomTranslation, {duration: 1500, curve: Easing.inOutSine });
+  //stateModifier.setTransform(randomTranslation, {duration: 1500, curve: Easing.inOutSine });
+
   var chain = mainContext.add(rotateModifier).add(renderNode);
   renderController.show(surface)
 
   if (colored) {
-    (function (surface, renderController) {
+    (function (surface, renderController, stateModifier) {
       surface.on('click', function () {
-        makeHexagonsGoPoof(surfaces);
+        makeHexagonsGoPoof(surfaces, this);
         //the hexagon I clicked pops up in the upper left part of the screen
-        console.log(renderController);
 
-        console.log(surface);
-        Engine.on("click", function () {
-          console.log(surface);
-          renderController.show(surface);
-        });
+        Timer.setTimeout(function () {
+          renderController.hide({duration: 200}, function () {
+            surface.emit("linkClick", [surface, renderController, stateModifier]);
+          });
+
+        }, 1000)
       });
-    })(surface, renderController);
+    })(surface, renderController, stateModifier);
   }
 }
 
-function makeHexagonsGoPoof(surfaces) {
+secondAnimation();
+
+function secondAnimation () {
+  Timer.setTimeout(function () {
+  //Engine.on('click', function () {
+    var duration = 1000;
+    var opacityDuration = 0;
+    var bgDuration = 0;
+    //var localDuration = 600;
+    var localDuration = 0;
+    var easing = Easing.inOutSine
+
+    var body = d3.select('body');
+    body.transition().duration(bgDuration).style('background', '#161a21');
+
     for (var i = 0; i < surfaces.length; i += 1) {
-      var s  = surfaces[i][0];
-      var rc = surfaces[i][1];
+      var ary = surfaces[i];
+      var s = ary[0];
+      var rc = ary[1];
+      var rm = ary[2];
+      var sm = ary[3]
 
-      var fn = (function (s, rc) { 
-        return function () {
-          Timer.setTimeout(function () {rc.hide()}, getRandomArbitrary(200,2000)); };
-      })(s, rc);
+      var x = s.screenCoordinate.x
+      var y = s.screenCoordinate.y
 
-      s.colored ? Timer.setTimeout(fn, 2500) : fn();
-    }
-}
+      var offsetX = s.offsetX;
+      var offsetY = s.offsetY;
 
-Timer.setTimeout(function () {
-//Engine.on('click', function () {
-  var duration = 1000;
-  var hideDuration = 2000;
-  var localDuration = 600;
-  var easing = Easing.inOutSine
+      var randomX = getRandomArbitrary(-1200, 1200);
+      var randomY = getRandomArbitrary(-1200, 1200);
 
-  var body = d3.select('body');
-  body.transition().duration(2000).style('background', '#161a21');
+      var colored = s.colored;
+      if (colored === true) {
+        rm.setTransform(Transform.rotate(0.0, 0.0, 0.0), {duration : localDuration});
+        sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), { duration: localDuration});
+        //sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), { duration: 500});
+        //sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 150), {duration: duration});
+      } else {
+        sm.setTransform(Transform.translate(x + randomX, y + randomY, 0), {duration: localDuration});
+        sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), {duration: localDuration });
+        rm.setTransform(Transform.rotate(0.0, 0.0, 0.0), {duration: localDuration});
+        s.d3_svg.transition().duration(opacityDuration).style('opacity', 0.3)
+      }
 
-  for (var i = 0; i < surfaces.length; i += 1) {
-    var ary = surfaces[i];
-    var s = ary[0];
-    var rc = ary[1];
-    var rm = ary[2];
-    var sm = ary[3]
+    };
 
-    var x = s.screenCoordinate.x
-    var y = s.screenCoordinate.y
-
-    var offsetX = s.offsetX;
-    var offsetY = s.offsetY;
-
-    var randomX = getRandomArbitrary(-1200, 1200);
-    var randomY = getRandomArbitrary(-1200, 1200);
-
-    var colored = s.colored;
-    if (colored === true) {
-      rm.setTransform(Transform.rotate(0.0, 0.0, 0.0), {duration : localDuration});
-      sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), { duration: localDuration});
-      //sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), { duration: 500});
-      //sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 150), {duration: duration});
-    } else {
-      sm.setTransform(Transform.translate(x + randomX, y + randomY, 0), {duration: localDuration});
-      sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), {duration: localDuration });
-      rm.setTransform(Transform.rotate(0.0, 0.0, 0.0), {duration: localDuration});
-      s.d3_svg.transition().duration(500).style('opacity', 0.3)
-    }
-
-  };
-
-}, 2000)
-//});
+  }, 0)
+};
 
 
 function getRandomArbitrary(min, max) { return Math.random() * (max - min) + min; }
+
+function genRanTranslation() {
+  return Transform.translate(x + getRandomArbitrary(-800, 800), y + getRandomArbitrary(-800, 800),getRandomArbitrary(-800, 800) );
+}
 
 function color_hexa_test(obj) {
   var colored_hexagons = [[3,1],[3,2],[2,2],[3,5],[3,6], [4,5], [4,4], [6,3], [5,4], [6,5], [7,3], [7,2], [8,3]]
@@ -178,4 +193,64 @@ function checkIfColored(obj, hexagon) {
   color_hexa_test(obj) ? colored = false: colored = true;
   return colored;
 }
+
+function makeHexagonsGoPoof(surfaces, clickedSurface) {
+  var transition = { duration: 200 };
+  var coloredDuration = 400;
+
+  //var surfaces = _.map(surfaces, function (ary) { return ary[0] });
+  //var coloredSurfaces = _.shuffle(_.where(surfaces, {colored: true}));
+  //var greySurfaces = _.shuffle(_.where(surfaces,{colored: false}));
+
+  //var ee = new EventEmitter();
+
+  //ee.on('startHideGray', function () {
+    //console.log('started to hide gray');
+    //_hideNext(0, greySurfaces, 'startHideColored')
+  //});
+
+  //ee.on('startHideColored', function () {
+    //console.log('start to hide colored');
+    //console.log(coloredSurfaces);
+    //console.log(coloredSurfaces.length);
+    //_hideNext(0, coloredSurfaces, 'none')
+  //});
+  
+
+  //function _hideNext(index, _surfaces, eventType) {
+    //if (index === _surfaces.length) {
+      //console.log(eventType);
+      //ee.emit(eventType);
+    //} else {
+      //var s  = _surfaces[index];
+      //var rc = s.renderController;
+      //var nextIndex = index + 1;
+
+      //if (s.id !== clickedSurface.id) {
+        //rc.hide({duration: 10}, _hideNext.bind(this, nextIndex, _surfaces, eventType));
+      //} else {
+        //_hideNext.bind(this, nextIndex, _surfaces, eventType)();
+      //}
+    //}
+  //}
+
+  //ee.emit('startHideGray');
+  //ee.emit('startHideColored');
+
+
+  for (var i = 0; i < surfaces.length; i += 1) {
+    var s  = surfaces[i][0];
+    var rc = surfaces[i][1];
+
+    if (s.id !== clickedSurface.id) {
+      var fn = (function (s, rc) { 
+        //return function () { Timer.setTimeout(function () {rc.hide(transition)}, getRandomArbitrary(200,2000)); };
+        return function () { Timer.setTimeout(function () {rc.hide(transition)}, getRandomArbitrary(2,20)); };
+      })(s, rc);
+
+      s.colored ? Timer.setTimeout(fn, coloredDuration) : fn();
+    }
+  }
+}
+
 
