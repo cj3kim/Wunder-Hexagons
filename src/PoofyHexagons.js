@@ -1,8 +1,8 @@
 
-var View       = require('famous/core/View');
+var View         = require('famous/core/View');
+var Timer        = require('famous/utilities/Timer');
 var EventEmitter = require('famous/core/EventEmitter');
 var _ = require('underscore');
-
 
 function PoofyHexagons() {
   View.apply(this, arguments);
@@ -13,54 +13,64 @@ PoofyHexagons.prototype.constructor = View;
 
 PoofyHexagons.prototype.disappear = function (surfaces, clickedSurface) {
   var _this = this;
-
+  var transition = {duration: 500};
   var greySurfaces    = _.shuffle(_.where(surfaces,  {colored: false}));
   var coloredSurfaces = _.shuffle(_.where(surfaces, {colored: true}));
 
-  var ee = new EventEmitter();
+  function getRandomArbitrary(min, max) { return Math.random() * (max - min) + min; }
 
-  console.log(greySurfaces);
-  console.log(greySurfaces.length);
+  function greyDisappear() {
+    var greyHiddenCount = 0;
+    console.log(greySurfaces);
+    console.log(greySurfaces.length);
 
-  ee.on('finishedPoof', function () {
-    console.log('poofs have been finished');
-    this._eventOutput.emit('finishedPoof');
-  }.bind(_this));
+    for (var i = 0; i < greySurfaces.length; i += 1) {
+      console.log("i: "+i);
+      var surface = greySurfaces[i];
+      var rc = surface.rc;
 
-  ee.on('startHideGray', function () {
-    //console.log('started to hide gray');
-    //console.log(greySurfaces);
-    //console.log(greySurfaces.length);
-    _hideNext(0, greySurfaces, 'startHideColored')
-  });
+      var fn = (function (s, rc) { 
+        return function () { Timer.setTimeout(function () {
+          rc.hide(transition, function () {
+            greyHiddenCount += 1;
+            if (greyHiddenCount === greySurfaces.length) {
+              colorDisappear();
+            }
+          });
+        }, getRandomArbitrary(200,500)); };
+      })(surface, rc);
 
-  ee.on('startHideColored', function () {
-    //console.log('start to hide colored');
-    //console.log(coloredSurfaces);
-    //console.log(coloredSurfaces.length);
-    _hideNext(0, coloredSurfaces, 'finishedPoof')
-  });
-  
+      fn();
+    }
 
-  function _hideNext(index, _surfaces, eventType) {
-    console.log(_surfaces);
-    if (index === _surfaces.length) {
-      console.log(eventType);
-      ee.emit(eventType);
-    } else {
-      var s  = _surfaces[index];
-      var rc = s.rc;
-      var nextIndex = index + 1;
+  }
 
-      if (s.id !== clickedSurface.id) {
-        rc.hide({duration: 10}, _hideNext.bind(this, nextIndex, _surfaces, eventType));
-      } else {
-        _hideNext.bind(this, nextIndex, _surfaces, eventType)();
-      }
+  function colorDisappear() {
+    console.log('colorDisappear');
+    var colorHiddenCount = 0;
+
+    for (var i = 0; i < coloredSurfaces.length; i += 1) {
+      var surface = coloredSurfaces[i];
+      var rc = surface.rc;
+
+      var fn = (function (s, rc) { 
+        return function () { Timer.setTimeout(function () {
+          colorHiddenCount += 1;
+          if (s.id !== clickedSurface.id) {
+              rc.hide(transition, function () {
+                if (colorHiddenCount === coloredSurfaces.length) {
+                  _this._eventOutput.emit('finishedPoof')
+                }
+              });
+          }
+        }, getRandomArbitrary(200,500)); };
+      })(surface, rc);
+
+      fn();
     }
   }
 
-  ee.emit('startHideGray');
+  greyDisappear();
 
 }
 

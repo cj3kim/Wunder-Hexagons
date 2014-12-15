@@ -196,46 +196,6 @@ function makeHexagonsGoPoof(surfaces, clickedSurface) {
   var transition = { duration: 200 };
   var coloredDuration = 400;
 
-  //var surfaces = _.map(surfaces, function (ary) { return ary[0] });
-  //var coloredSurfaces = _.shuffle(_.where(surfaces, {colored: true}));
-  //var greySurfaces = _.shuffle(_.where(surfaces,{colored: false}));
-
-  //var ee = new EventEmitter();
-
-  //ee.on('startHideGray', function () {
-    //console.log('started to hide gray');
-    //_hideNext(0, greySurfaces, 'startHideColored')
-  //});
-
-  //ee.on('startHideColored', function () {
-    //console.log('start to hide colored');
-    //console.log(coloredSurfaces);
-    //console.log(coloredSurfaces.length);
-    //_hideNext(0, coloredSurfaces, 'none')
-  //});
-  
-
-  //function _hideNext(index, _surfaces, eventType) {
-    //if (index === _surfaces.length) {
-      //console.log(eventType);
-      //ee.emit(eventType);
-    //} else {
-      //var s  = _surfaces[index];
-      //var rc = s.renderController;
-      //var nextIndex = index + 1;
-
-      //if (s.id !== clickedSurface.id) {
-        //rc.hide({duration: 10}, _hideNext.bind(this, nextIndex, _surfaces, eventType));
-      //} else {
-        //_hideNext.bind(this, nextIndex, _surfaces, eventType)();
-      //}
-    //}
-  //}
-
-  //ee.emit('startHideGray');
-  //ee.emit('startHideColored');
-
-
   for (var i = 0; i < surfaces.length; i += 1) {
     var s  = surfaces[i][0];
     var rc = surfaces[i][1];

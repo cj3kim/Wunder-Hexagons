@@ -1,3 +1,6 @@
+
+var _ = require('underscore');
+
 function ScreenCoordinate(x, y) {
     this.x = x 
     this.y = y
@@ -69,19 +72,71 @@ function add_cube_attrs(obj) {
 
   var xyz = even_r_to_cube(obj.coordinate);
   obj.screenCoordinate = toScreen(xyz, scale);
+  obj.colored = setColor(obj);
+  obj.linkName = setLinkName(obj);
+
+  console.log(obj);
 }
 
 function genOffsetGrid(row, col) {
   var grid = []
   for (var i=0; i<row; i++) {
     for (var j=0; j<col; j++) {
-      var subgrid = {coordinate:[j, i]}
+      var coordinate = [j, i];
+      var subgrid = { coordinate: coordinate};
+
       grid.push(subgrid)
     }
   }
   return grid
 }
 
+function setLinkName(obj) {
+  var titledHexagons = [[3,2], [4,4], [7,3], [6,5]];
 
+  for (var i = 0; i < titledHexagons.length; i += 1) {
+    var th = titledHexagons[i];
+    var equal = _.isEqual(th, obj.coordinate)
+    if (equal) {
+      var  linkName = ''+th+''
+      console.log('linkName: '+ linkName);
+
+      switch (linkName) {
+        case '3,2':
+          return 'About';
+          break;
+        case '4,4':
+          return 'Services';
+          break;
+        case '7,3':
+          return 'Team';
+          break;
+        case '6,5':
+          return 'Contact';
+          break;
+        default:
+          return 'None';
+      }
+    }
+  }
+}
+
+function setColor(obj) {
+  var colored;
+  color_hexa_test(obj) ? colored = false: colored = true;
+  return colored;
+}
+
+function color_hexa_test(obj) {
+  var colored_hexagons = [[3,1],[3,2],[2,2],[3,5],[3,6], [4,5], [4,4], [6,3], [5,4], [6,5], [7,3], [7,2], [8,3]]
+
+  for (var i = 0; i < colored_hexagons.length; i += 1) {
+    var ch = colored_hexagons[i]
+    if (obj.coordinate[0] == ch[0] && obj.coordinate[1] == ch[1]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 exports.module = {genOffsetGrid: genOffsetGrid, add_cube_attrs:add_cube_attrs}

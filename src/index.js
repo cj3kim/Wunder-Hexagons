@@ -34,6 +34,8 @@ var row = 8;
 var col = 11;
 
 var hexagons = grid.genOffsetGrid(row, col);
+console.log(hexagons);
+
 for (var i=0; i < hexagons.length; i++) {
   var obj = hexagons[i];
   grid.add_cube_attrs(obj);

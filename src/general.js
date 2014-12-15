@@ -44,7 +44,7 @@ function General(mainContext) {
     var sm = surface.sm;
     var rc = surface.rc;
 
-    sm.setTransform(Transform.translate(100,100, 0), {duration: 100}, function () {
+    sm.setTransform(Transform.translate(100,100, 0), {duration: 300}, function () {
       var contentView = _this.contentView;
       var contentViewRc = contentView.rc;
       rc.show(surface);
@@ -64,9 +64,15 @@ General.prototype.convertHexagonsToSurfaces = function (hexagons) {
     var x = obj.screenCoordinate.x;
     var y = obj.screenCoordinate.y;
 
-    var colored = checkIfColored(obj)
     var d3_svg;
-    colored ?  d3_svg = hexagon.createSVG('About') : d3_svg = hexagon.createSVG();
+
+    console.log('colored: ' + obj.colored);
+    console.log('linkName: ' + obj.linkName);
+
+    obj.colored  ? d3_svg = hexagon.createSVG() : d3_svg = hexagon.createSVG();
+    if (obj.linkName) {
+       d3_svg = hexagon.createSVG(obj.linkName);
+    }
 
     var surface = new Surface({
       size: [107, 114],
@@ -75,7 +81,9 @@ General.prototype.convertHexagonsToSurfaces = function (hexagons) {
     });
 
     surface.d3_svg = d3_svg;
-    surface.colored = colored;
+    surface.colored = obj.colored;
+    surface.linkName = obj.linkName
+
     surface.screenCoordinate = obj.screenCoordinate;
 
     surface.offsetX = 180;
@@ -216,15 +224,15 @@ General.prototype.assignEvents = function (surfaces) {
 
         surface.on('click', function () {
           poofyHexagons._eventOutput.on('finishedPoof', function () {
-            rc.hide({duration: 200}, function () {
-              _this._eventOutput.emit('linkClick', surface)
-            });
+            Timer.setTimeout(function () {
+              rc.hide({duration: 500}, function () {
+                _this._eventOutput.emit('linkClick', surface)
+              })
+            }, 500);
           });
 
           poofyHexagons.disappear(surfaces, surface);
         });
-
-
       })(surface);
     }
   }
@@ -235,24 +243,5 @@ function getRandomArbitrary(min, max) { return Math.random() * (max - min) + min
 function genRanTranslation(x, y) {
   return Transform.translate(x + getRandomArbitrary(-800, 800), y + getRandomArbitrary(-800, 800),getRandomArbitrary(-800, 800) );
 }
-
-function color_hexa_test(obj) {
-  var colored_hexagons = [[3,1],[3,2],[2,2],[3,5],[3,6], [4,5], [4,4], [6,3], [5,4], [6,5], [7,3], [7,2], [8,3]]
-
-  for (var i = 0; i < colored_hexagons.length; i += 1) {
-    var ch = colored_hexagons[i]
-    if (obj.coordinate[0] == ch[0] && obj.coordinate[1] == ch[1]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function checkIfColored(obj) {
-  var colored;
-  color_hexa_test(obj) ? colored = false: colored = true;
-  return colored;
-}
-
 
 module.exports = General;
