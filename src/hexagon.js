@@ -58,4 +58,4 @@ var createSVG = function () {
   return d3_svg;
 }
 
-exports.module = {drawHexagon: drawHexagon, createSVG: createSVG}
+module.exports = {drawHexagon: drawHexagon, createSVG: createSVG}

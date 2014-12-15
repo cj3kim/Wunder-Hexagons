@@ -41,7 +41,7 @@ function BubbleView() {
 };
 
 BubbleView.prototype = Object.create(View.prototype);
-BubbleView.prototype.constructor = BubbleView;
+BubbleView.prototype.constructor = View;
 
 BubbleView.prototype.assignBubbleEvents =  function assignBubbleEvents () {
 
