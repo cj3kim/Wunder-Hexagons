@@ -27,16 +27,19 @@ function General(mainContext) {
   this.contentView.rc.add(this.contentview);
 
   this.contentView.pipe(this);
+
   this._eventInput.on('hidden-ContentView', function () {
     console.log('hidden-ContentView');
+    _this.contentView.bubbleView._eventInput.emit('hide-BubbleView');
+    _this.contentView.textView._eventInput.emit('hide-TextView');
     _this.startSecondAnimation(_this.renderNodes, true);
   });
 
   this._eventOutput.on('finished-InitialAnimation', function (renderNodes) {
     _this.startSecondAnimation(renderNodes);
   });
+
   this._eventOutput.on('finished-SecondAnimation', function (renderNodes) {
-    _this.contentview.rc.show(_this.contentView);
   });
 
   this._eventOutput.on('linkClick', function (surface) {
@@ -48,7 +51,11 @@ function General(mainContext) {
       var contentView = _this.contentView;
       var contentViewRc = contentView.rc;
       rc.show(surface);
-      contentViewRc.show(contentView);
+      contentView.setCurrentSurface(surface);
+      contentViewRc.show(contentView, function () {
+        console.log('do i offend?');
+        contentView.bubbleView.showBubbles();
+      });
     });
   });
 };
@@ -215,9 +222,8 @@ General.prototype.assignEvents = function (surfaces) {
 
   for (var i = 0; i < surfaces.length; i += 1) {
     var surface = surfaces[i];
-    var colored = surface.colored;
 
-    if (colored) {
+    if (surface.linkName) {
       (function (surface) {
         var rc = surface.rc;
         var sm = surface.sm;

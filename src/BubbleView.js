@@ -23,29 +23,33 @@ function BubbleView() {
     this.add(bubble.renderNode)
   }
 
-  function _showNext(index) {
-    if (index === sortedBubbles.length) {
-      self._eventOutput.emit('finishedBubbling');
-    } else {
-      var surface = sortedBubbles[index].surface;
-      var rc = surface.renderController;
-      var nextIndex = index + 1;
+  this.showBubbles = function () {
+    function _showNext(index) {
+      if (index === sortedBubbles.length) {
+        self._eventOutput.emit('finishedBubbling');
+      } else {
+        var surface = sortedBubbles[index].surface;
+        var rc = surface.renderController;
+        var nextIndex = index + 1;
 
-      rc.show(surface, {duration: 150}, _showNext.bind(this, nextIndex));
+        rc.show(surface, {duration: 150}, _showNext.bind(this, nextIndex));
+      }
     }
-  }
+    _showNext.bind(this,0)();
+  };
 
-   _showNext(0)
+  this._eventInput.on('hide-BubbleView', function () {
+    for (var i = 0; i < sortedBubbles.length; i += 1) {
+      var surface = sortedBubbles[i].surface;
+      var rc = surface.renderController;
+      rc.hide({duration: 0});
+    }
+  });
 
-  console.log(this);
 };
 
 BubbleView.prototype = Object.create(View.prototype);
 BubbleView.prototype.constructor = View;
-
-BubbleView.prototype.assignBubbleEvents =  function assignBubbleEvents () {
-
-};
 
 BubbleView.prototype.createBubble = function createBubble(coordinates, size, properties) {
   var x = coordinates[0];

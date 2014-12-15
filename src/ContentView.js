@@ -5,6 +5,7 @@ var View     = require('famous/core/View');
 var BubbleView = require('./BubbleView.js');
 var RenderController = require("famous/views/RenderController");
 var TextView = require('./TextView.js');
+var Timer            = require('famous/utilities/Timer');
 
 var hexagon = require('./hexagon.js');
 
@@ -26,7 +27,12 @@ function ContentView() {
 
     this.exitSurface.on('click', function () {
       _this.rc.hide({duration: 1000}, function () {
-        _this._eventOutput.emit("hidden-ContentView");
+        _this.currentSurface.rc.hide({duration:500}, function () {
+          console.log(_this.currentSurface);
+          Timer.setTimeout(function () {
+            _this._eventOutput.emit("hidden-ContentView");
+          }, 300);
+        });
       });
     });
 
@@ -36,6 +42,7 @@ function ContentView() {
     });
 
     this.add(textSurfaceMod).add(this.textView);
+    this.textView.pipe(this)
 
     this.bubbleView  = new BubbleView();
     var baseX = 600;
@@ -50,5 +57,8 @@ function ContentView() {
 ContentView.prototype = Object.create(View.prototype);
 ContentView.prototype.constructor = ContentView;
 
+ContentView.prototype.setCurrentSurface = function (surface) {
+  this.currentSurface = surface;
+}
 
 module.exports = ContentView;

@@ -59,7 +59,7 @@ PoofyHexagons.prototype.disappear = function (surfaces, clickedSurface) {
           if (s.id !== clickedSurface.id) {
               rc.hide(transition, function () {
                 if (colorHiddenCount === coloredSurfaces.length) {
-                  _this._eventOutput.emit('finishedPoof')
+                  _this._eventOutput.emit('finishedPoof', clickedSurface)
                 }
               });
           }

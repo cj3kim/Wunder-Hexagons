@@ -13,12 +13,19 @@ var loremIpsum = require('lorem-ipsum');
 function TextView() {
   View.apply(this, arguments);
 
+  var _this = this;
   var renderController = new RenderController();
   var textSurfaces = this.generateTextSurfaces();
 
   this._eventInput.on('finishedBubbling', function () {
     console.log('finishedBubbling');
-    renderController.show(textSurfaces[0]);
+    renderController.show(textSurfaces[0], function () {
+      _this._eventOutput.emit('shown-TextView');
+    });
+  });
+
+  this._eventInput.on('hide-TextView', function () {
+    renderController.hide({duration: 0});
   });
 
   this._eventInput.on('bubbleClicked', function (textIndex) {
