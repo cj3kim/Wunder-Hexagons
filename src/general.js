@@ -24,15 +24,13 @@ function General(mainContext) {
 
   this.contentView = new ContentView();
   mainContext.add(this.contentView.rc);
-  this.contentView.rc.add(this.contentview);
 
   this.contentView.pipe(this);
 
   this._eventInput.on('hidden-ContentView', function () {
     console.log('hidden-ContentView');
-    _this.contentView.bubbleView._eventInput.emit('hide-BubbleView');
-    _this.contentView.textView._eventInput.emit('hide-TextView');
-    _this.startSecondAnimation(_this.renderNodes, true);
+    _this.contentView._eventInput.emit('hide-ContentView');
+   _this.startSecondAnimation(_this.renderNodes, true);
   });
 
   this._eventOutput.on('finished-InitialAnimation', function (renderNodes) {
@@ -47,13 +45,12 @@ function General(mainContext) {
     var sm = surface.sm;
     var rc = surface.rc;
 
-    sm.setTransform(Transform.translate(100,100, 0), {duration: 300}, function () {
+    sm.setTransform(Transform.translate(0,100, 0), {duration: 300}, function () {
       var contentView = _this.contentView;
       var contentViewRc = contentView.rc;
       rc.show(surface);
       contentView.setCurrentSurface(surface);
       contentViewRc.show(contentView, function () {
-        console.log('do i offend?');
         contentView.bubbleView.showBubbles();
       });
     });
@@ -72,13 +69,45 @@ General.prototype.convertHexagonsToSurfaces = function (hexagons) {
     var y = obj.screenCoordinate.y;
 
     var d3_svg;
-
-    console.log('colored: ' + obj.colored);
-    console.log('linkName: ' + obj.linkName);
-
     obj.colored  ? d3_svg = hexagon.createSVG() : d3_svg = hexagon.createSVG();
+
     if (obj.linkName) {
        d3_svg = hexagon.createSVG(obj.linkName);
+       //createSvgImageSettings: width, height, x, y
+       switch (obj.linkName) {
+         case 'Team':
+           var settings = createSvgBoxSettings(190, 126, -50, 0);
+           applyPattern(d3_svg, "teamwork", "images/team.png", settings);
+
+           var textSettings = createSvgBoxSettings(0,0, 35, 60)
+           modifySvgTextLocation(d3_svg, textSettings)
+           break;
+         case 'About':
+           var settings = createSvgBoxSettings(190, 126, -50, 0);
+           applyPattern(d3_svg, "about", "images/about.png", settings);
+
+           var textSettings = createSvgBoxSettings(0,0, 41, 45)
+           modifySvgTextLocation(d3_svg, textSettings)
+
+           break;
+         case 'Services':
+           var settings = createSvgBoxSettings(120, 120, -10, 2);
+           applyPattern(d3_svg, "services", "images/services.png", settings);
+           var textSettings = createSvgBoxSettings(0,0, 20, 58)
+           modifySvgTextLocation(d3_svg, textSettings)
+
+           break;
+         case 'Contact':
+           var settings = createSvgBoxSettings(191, 126, -80, 0);
+           applyPattern(d3_svg, "contact", "images/glass_building.png", settings);
+           var textSettings = createSvgBoxSettings(0,0, 20, 80)
+           modifySvgTextLocation(d3_svg, textSettings)
+
+
+           break;
+         default:
+           // code
+       }
     }
 
     var surface = new Surface({
@@ -93,8 +122,8 @@ General.prototype.convertHexagonsToSurfaces = function (hexagons) {
 
     surface.screenCoordinate = obj.screenCoordinate;
 
-    surface.offsetX = 180;
-    surface.offsetY = 40;
+    surface.offsetX = 0;
+    surface.offsetY = 0;
 
     surfaces.push(surface);
   }
@@ -197,7 +226,7 @@ General.prototype.startSecondAnimation = function (renderNodes) {
 
     if (surface.colored) {
       rm.setTransform(Transform.rotate(0.0, 0.0, 0.0), {duration : duration}, finishFn.bind(this, rotationCount));
-      sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), { duration: duration}, finishFn.bind(this, animationCount));
+      sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 00), { duration: duration}, finishFn.bind(this, animationCount));
 
     } else {
       if (reveal !== true) {
@@ -206,10 +235,9 @@ General.prototype.startSecondAnimation = function (renderNodes) {
         sm.setTransform(Transform.translate(x + randomX, y + randomY, 0), {duration: 0});
       }
       sm.setTransform(Transform.translate(x + offsetX, y + offsetY, 0), {duration: duration}, finishFn.bind(this, animationCount));
-
       rm.setTransform(Transform.rotate(0.0, 0.0, 0.0), {duration: duration}, finishFn.bind(this, rotationCount));
 
-      surface.d3_svg.transition().duration(opacityDuration).style('opacity', 0.3)
+      surface.d3_svg.transition().duration(opacityDuration).style('opacity', 0.2)
     }
     if (reveal) {
       rc.show(surface);
@@ -248,6 +276,46 @@ function getRandomArbitrary(min, max) { return Math.random() * (max - min) + min
 
 function genRanTranslation(x, y) {
   return Transform.translate(x + getRandomArbitrary(-800, 800), y + getRandomArbitrary(-800, 800),getRandomArbitrary(-800, 800) );
+}
+
+function applyPattern(svg, patternId, href, settings) {
+  var defs = svg.append('svg:defs');
+  defs.append('svg:pattern')
+    .attr('id', patternId)
+    .attr('patternUnits', 'userSpaceOnUse')
+    .attr('width', settings.width)
+    .attr('height', settings.height)
+    .append('svg:image')
+    .attr('xlink:href', href)
+    .attr('x', settings.x)
+    .attr('y', settings.y)
+    .attr('width', settings.width)
+    .attr('height', settings.height);
+
+  var urlString = _.template('url(#<%= patternId %>)')({patternId: patternId});
+  svg.select('path').attr('fill', urlString);
+
+  return svg;
+}
+
+function modifySvgTextLocation (svg, settings) {
+  var text = svg.select('text')
+  text.attr('x', settings.x)
+    .attr('y', settings.y)
+    //.attr('width', settings.width)
+    //.attr('height', settings.height)
+  ;
+    //.attr('font-size')
+    //.attr('font-style')
+}
+
+function createSvgBoxSettings(width, height, x, y) {
+  var settings = {};
+  settings.width = width;
+  settings.height = height;
+  settings.x = x;
+  settings.y = y;
+  return settings;
 }
 
 module.exports = General;

@@ -74,8 +74,6 @@ function add_cube_attrs(obj) {
   obj.screenCoordinate = toScreen(xyz, scale);
   obj.colored = setColor(obj);
   obj.linkName = setLinkName(obj);
-
-  console.log(obj);
 }
 
 function genOffsetGrid(row, col) {

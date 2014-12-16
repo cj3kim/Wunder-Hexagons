@@ -13,10 +13,16 @@ function ContentView() {
     View.apply(this, arguments);
     var _this = this;
 
+    this._eventInput.on('hide-ContentView', function () {
+      _this.bubbleView._eventInput.emit('hide-BubbleView');
+      _this.textView._eventInput.emit('hide-TextView');
+    });
+
     this.rc = new RenderController();
     var d3_svg = hexagon.createSVG('Done');
+
     var exitSurfaceMod = new Modifier({
-      transform: Transform.translate(100, 250, 0)})
+      transform: Transform.translate(0, 250, 0)})
 
     this.exitSurface = new Surface({
       size: [107, 114],
@@ -38,7 +44,7 @@ function ContentView() {
 
     this.textView = new TextView();
     var textSurfaceMod = new Modifier({
-      transform: Transform.translate(250, 100, 0)
+      transform: Transform.translate(150, 100, 0)
     });
 
     this.add(textSurfaceMod).add(this.textView);
@@ -47,11 +53,13 @@ function ContentView() {
     this.bubbleView  = new BubbleView();
     var baseX = 600;
     var bubbleMod = new Modifier({
-        transform: Transform.translate(baseX + 200, 50, 0)
+        transform: Transform.translate(baseX + 100, 50, 0)
     });
+
     this.add(bubbleMod).add(this.bubbleView);
 
     this.bubbleView.pipe(this.textView)
+    this.contentView.pipe(this.bubbleView);
 };
 
 ContentView.prototype = Object.create(View.prototype);

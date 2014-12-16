@@ -38,19 +38,20 @@ var createSVG = function () {
              .attr('width',  105)
              .attr('height', 114)
 
-  d3_svg.append("path") .attr("d", drawHexagon(hexagonData))
-             .style('fill-opacity', 0.7)
-             .style("fill", color)
+  d3_svg.append("path").attr("d", drawHexagon(hexagonData))
+             .attr('fill-opacity', 0.7)
+             .attr("fill", color)
              .attr("stroke", strokeColor)
              //.attr("stroke-dasharray","20,5")
              .attr("stroke-width", 2)
              ;
 
   d3_svg.append('text')
-    .attr('x', 20)
-    .attr('y', 50)
+    .attr('x', 23)
+    .attr('y', 55)
     .attr('font-size', '20px')
     .attr('fill', 'white')
+    .attr('text-align', 'center')
     .text(text)
     ;
 
