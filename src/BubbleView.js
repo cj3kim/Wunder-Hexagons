@@ -24,18 +24,19 @@ function BubbleView() {
   }
 
   this._eventInput.on('start-BubbleView', function (jsonData) {
-    this.showBubbles();
+    this.showBubbles(jsonData);
   }.bind(this));
 
-  this.showBubbles = function () {
+  this.showBubbles = function (jsonData) {
     function _showNext(index) {
       if (index === sortedBubbles.length) {
-        self._eventOutput.emit('finishedBubbling');
+        self._eventOutput.emit('finishedBubbling', jsonData);
       } else {
         var surface = sortedBubbles[index].surface;
         var rc = surface.renderController;
         var nextIndex = index + 1;
 
+        //TODO Apply background image or text to surface here
         rc.show(surface, {duration: 150}, _showNext.bind(this, nextIndex));
       }
     }

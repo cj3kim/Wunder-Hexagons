@@ -9,6 +9,13 @@ var Timer            = require('famous/utilities/Timer');
 
 var hexagon = require('./hexagon.js');
 
+var content = { 
+    'team':     require('./content/team.js'),
+  , 'about':    require('./content/about.js'),
+  , 'services': require('./content/services.js'),
+  , 'contact':  require('./content/contact.js'),
+};
+
 function ContentView() {
     View.apply(this, arguments);
 
@@ -39,8 +46,11 @@ ContentView.prototype.showContentView = function (clickedSurface) {
 
   this.setCurrentSurface(clickedSurface);
 
+  var linkName = clickedSurface.linkName.toLowerCase();
+  var jsonData = content[linkName];
+
   this.rc.show(this, function () {
-    this._eventOutput.emit('start-BubbleView');
+    this._eventOutput.emit('start-BubbleView', jsonData);
   }.bind(this));
 };
 

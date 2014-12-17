@@ -17,8 +17,10 @@ function TextView() {
   var renderController = new RenderController();
   var textSurfaces = this.generateTextSurfaces();
 
-  this._eventInput.on('finishedBubbling', function () {
+  this._eventInput.on('finishedBubbling', function (jsonData) {
     console.log('finishedBubbling');
+    console.log(jsonData);
+    //TODO update text surfaces here
     renderController.show(textSurfaces[0], function () {
       _this._eventOutput.emit('shown-TextView');
     });
