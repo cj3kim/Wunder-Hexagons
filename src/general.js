@@ -24,12 +24,13 @@ function General(mainContext) {
 
   this.contentView = new ContentView();
   mainContext.add(this.contentView.rc);
-
   this.contentView.pipe(this);
+  this.pipe(this.contentView);
 
   this._eventInput.on('hidden-ContentView', function () {
     console.log('hidden-ContentView');
-    _this.contentView._eventInput.emit('hide-ContentView');
+    _this._eventOutput.emit('hide-ContentView');
+
    _this.startSecondAnimation(_this.renderNodes, true);
   });
 
@@ -37,24 +38,10 @@ function General(mainContext) {
     _this.startSecondAnimation(renderNodes);
   });
 
-  this._eventOutput.on('finished-SecondAnimation', function (renderNodes) {
-  });
-
-  this._eventOutput.on('linkClick', function (surface) {
+  this._eventInput.on('linkClick', function (surface) {
     console.log('Start linkClick flow');
-    var sm = surface.sm;
-    var rc = surface.rc;
-
-    sm.setTransform(Transform.translate(0,100, 0), {duration: 300}, function () {
-      var contentView = _this.contentView;
-      var contentViewRc = contentView.rc;
-      rc.show(surface);
-      contentView.setCurrentSurface(surface);
-      contentViewRc.show(contentView, function () {
-        contentView.bubbleView.showBubbles();
-      });
-    });
-  });
+    this._eventOutput.emit('show-ContentView', surface);
+  }.bind(this));
 };
 
 General.prototype = Object.create(View.prototype);
@@ -260,7 +247,7 @@ General.prototype.assignEvents = function (surfaces) {
           poofyHexagons._eventOutput.on('finishedPoof', function () {
             Timer.setTimeout(function () {
               rc.hide({duration: 500}, function () {
-                _this._eventOutput.emit('linkClick', surface)
+                _this._eventInput.emit('linkClick', surface)
               })
             }, 500);
           });

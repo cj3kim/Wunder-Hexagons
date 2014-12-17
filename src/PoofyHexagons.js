@@ -21,11 +21,8 @@ PoofyHexagons.prototype.disappear = function (surfaces, clickedSurface) {
 
   function greyDisappear() {
     var greyHiddenCount = 0;
-    console.log(greySurfaces);
-    console.log(greySurfaces.length);
 
     for (var i = 0; i < greySurfaces.length; i += 1) {
-      console.log("i: "+i);
       var surface = greySurfaces[i];
       var rc = surface.rc;
 

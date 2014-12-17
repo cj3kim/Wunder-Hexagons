@@ -23,6 +23,10 @@ function BubbleView() {
     this.add(bubble.renderNode)
   }
 
+  this._eventInput.on('start-BubbleView', function (jsonData) {
+    this.showBubbles();
+  }.bind(this));
+
   this.showBubbles = function () {
     function _showNext(index) {
       if (index === sortedBubbles.length) {

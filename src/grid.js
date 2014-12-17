@@ -97,7 +97,6 @@ function setLinkName(obj) {
     var equal = _.isEqual(th, obj.coordinate)
     if (equal) {
       var  linkName = ''+th+''
-      console.log('linkName: '+ linkName);
 
       switch (linkName) {
         case '3,2':
