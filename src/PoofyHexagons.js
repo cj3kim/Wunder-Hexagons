@@ -43,7 +43,6 @@ PoofyHexagons.prototype.disappear = function (surfaces, clickedSurface) {
   }
 
   function colorDisappear() {
-    console.log('colorDisappear');
     var colorHiddenCount = 0;
 
     for (var i = 0; i < coloredSurfaces.length; i += 1) {

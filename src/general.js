@@ -28,7 +28,6 @@ function General(mainContext) {
   this.pipe(this.contentView);
 
   this._eventInput.on('hidden-ContentView', function () {
-    console.log('hidden-ContentView');
     _this._eventOutput.emit('hide-ContentView');
 
    _this.startSecondAnimation(_this.renderNodes, true);
@@ -39,7 +38,6 @@ function General(mainContext) {
   });
 
   this._eventInput.on('linkClick', function (surface) {
-    console.log('Start linkClick flow');
     this._eventOutput.emit('show-ContentView', surface);
   }.bind(this));
 };
@@ -168,7 +166,6 @@ General.prototype.startInitialAnimations = function (renderNodes) {
       rotationCount  += 1;
 
       if (animationCount === surfaceCount && rotationCount === surfaceCount) {
-        console.log('finished-InitialAnimation');
         _this._eventOutput.emit('finished-InitialAnimation', renderNodes);
       }
     });

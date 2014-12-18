@@ -16,13 +16,13 @@ var EventEmitter     = require('famous/core/EventEmitter');
 var Easing           = require('famous/transitions/Easing');
 var Timer            = require('famous/utilities/Timer');
 
-var hexagon = require('./hexagon');
-var grid    = require('./grid').module;
+var hexagon = require('./Hexagon');
+var grid    = require('./Grid').module;
 
 var jQuery = require('jquery');
 var d3 = require('d3');
 var _  = require('underscore');
-var General = require('./general.js');
+var General = require('./General.js');
 
 // create the main context
 var mainContext = Engine.createContext();
@@ -52,33 +52,6 @@ Engine.on('resize', function () {
   resizeAdjustment(size);
 });
 
-function resizeAdjustment(size) {
-   var offsetXY = computeOffsetXY(size);
-   windowTransition.set(offsetXY, {duration: 100});
-}
-
-function computeOffsetXY(size) {
-  var width  = size[0];
-  var height = size[1];
-  console.log('width');
-  console.log(width);
-  console.log('height');
-  console.log(height);
-
-  var hexagonWidth = 1210;
-  var hexagonHeight = 744;
-  var offsetX = (width - hexagonWidth)/2 + 50;
-  var offsetY = (height - hexagonHeight)/2;
-  console.log('offsetX');
-  console.log(offsetX);
-  console.log('offsetY');
-  console.log(offsetY);
-
-  var result = [offsetX, offsetY];
-  console.log(result);
-  return result;
-}
-
 var general = new General(node);
 var row = 8;
 var col = 11;
@@ -98,3 +71,20 @@ general.assignEvents(surfaces);
 general.startInitialAnimations(renderNodes);
 
 
+function resizeAdjustment(size) {
+   var offsetXY = computeOffsetXY(size);
+   windowTransition.set(offsetXY, {duration: 100});
+}
+
+function computeOffsetXY(size) {
+  var width  = size[0];
+  var height = size[1];
+
+  var hexagonWidth = 1210;
+  var hexagonHeight = 744;
+  var offsetX = (width - hexagonWidth)/2 + 50;
+  var offsetY = (height - hexagonHeight)/2;
+
+  var result = [offsetX, offsetY];
+  return result;
+}

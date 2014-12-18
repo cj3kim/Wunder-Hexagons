@@ -49,17 +49,14 @@ function TextView() {
 
   });
 
-
   this.add(rotateModifier).add(renderController);
 
   var textSurfaces = this.generateTextSurfaces(state);
 
   this._eventInput.on('finishedBubbling', function (jsonData) {
-    console.log('finishedBubbling');
-    console.log(jsonData);
+    _this.text = jsonData.text;
 
     for (var i = 0; i < jsonData.text.length; i += 1) {
-      console.log(textSurfaces[i]);
       textSurfaces[i].content = jsonData.text[i]
     }
 
@@ -73,7 +70,9 @@ function TextView() {
   });
 
   this._eventInput.on('bubbleClicked', function (textIndex) {
-    renderController.show(textSurfaces[textIndex]);
+    if (_this.text[textIndex]) {
+      renderController.show(textSurfaces[textIndex]);
+    }
   });
 
 }
@@ -98,8 +97,6 @@ TextView.prototype.generateTextSurfaces = function (state) {
 
     textSurface.on('mouseenter', function () {
       state.set(0);
-      console.log(state.get());
-
       state.set(3, {method : 'spring', dampingRatio : 0.5, period : 3000}); // spring
     });
 
