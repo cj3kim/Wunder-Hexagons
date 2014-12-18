@@ -19,6 +19,7 @@ var Timer            = require('famous/utilities/Timer');
 var hexagon = require('./hexagon');
 var grid    = require('./grid').module;
 
+var jQuery = require('jquery');
 var d3 = require('d3');
 var _  = require('underscore');
 var General = require('./general.js');
@@ -27,7 +28,12 @@ var General = require('./general.js');
 var mainContext = Engine.createContext();
 mainContext.setPerspective(1000);
 
-var initialOffset = computeOffsetXY([window.screen.innerWidth, window.screen.innerHeight - 80]);
+
+var jWidth  = jQuery(window).width();
+var jHeight = jQuery(window).height();
+
+
+var initialOffset = computeOffsetXY([jWidth, jHeight]);
 var windowTransition = new Transitionable(initialOffset);
 
 var windowModifier = new Modifier({
