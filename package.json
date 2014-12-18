@@ -12,7 +12,7 @@
     ]
   },
   "scripts": {
-    "start": "npm run build && serve public/ -p $PORT",
+    "start": "serve public/ -p $PORT",
     "start-dev": "npm run watch & serve public/ -p 1337",
     "test": "npm run lint -s && npm run build",
     "build": "browserify src/index.js | uglifyjs > public/bundle.js",
