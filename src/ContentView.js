@@ -10,10 +10,10 @@ var Timer            = require('famous/utilities/Timer');
 var hexagon = require('./hexagon.js');
 
 var content = { 
-    'team':     require('./content/team.js'),
-  , 'about':    require('./content/about.js'),
-  , 'services': require('./content/services.js'),
-  , 'contact':  require('./content/contact.js'),
+    'team':     require('./content/team.js')
+  , 'about':    require('./content/about.js')
+  , 'services': require('./content/services.js')
+  , 'contact':  require('./content/contact.js')
 };
 
 function ContentView() {
@@ -65,7 +65,14 @@ ContentView.prototype.setupPiping = function () {
 ContentView.prototype.setupSurfaces = function () {
     var _this = this;
     this.rc = new RenderController();
-    var d3_svg = hexagon.createSVG('Done');
+    var d3_svg = hexagon.createSVG();
+
+    d3_svg.append('svg:image')
+      .attr('xlink:href', 'images/left-arrow.png')
+      .attr('x', 28)
+      .attr('y', 30)
+      .attr('width',  50)
+      .attr('height', 50);
 
     var exitSurfaceMod = new Modifier({
       transform: Transform.translate(0, 250, 0)})

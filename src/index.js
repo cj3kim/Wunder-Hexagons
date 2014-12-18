@@ -25,7 +25,7 @@ var General = require('./general.js');
 
 // create the main context
 var mainContext = Engine.createContext();
-mainContext.setPerspective(300);
+mainContext.setPerspective(1000);
 
 var initialOffset = computeOffsetXY([window.screen.availWidth, window.screen.availHeight - 80]);
 var windowTransition = new Transitionable(initialOffset);

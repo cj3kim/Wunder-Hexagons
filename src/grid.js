@@ -90,7 +90,7 @@ function genOffsetGrid(row, col) {
 }
 
 function setLinkName(obj) {
-  var titledHexagons = [[3,2], [4,4], [7,3], [6,5]];
+  var titledHexagons = [[3,2], [4,4], [7,3]];
 
   for (var i = 0; i < titledHexagons.length; i += 1) {
     var th = titledHexagons[i];

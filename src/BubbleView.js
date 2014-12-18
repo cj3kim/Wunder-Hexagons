@@ -8,18 +8,21 @@ var Modifier   = require('famous/core/Modifier');
 var StateModifier = require('famous/modifiers/StateModifier');
 var objectMerge = require('object-merge');
 var _ = require('underscore');
+var hexagon = require('./hexagon.js');
+
+var Transitionable   = require('famous/transitions/Transitionable');
+var Easing           = require('famous/transitions/Easing');
+var TweenTransition = require('famous/transitions/TweenTransition');
+TweenTransition.registerCurve('inSine', Easing.inSine);
 
 function BubbleView() {
   View.apply(this, arguments);
 
   var self = this;
   var bubbles = this.bubblify();
-  var sortedBubbles = _.sortBy(bubbles, function (bubble) {
-    return bubble.surface.bubble_order;
-  });
 
-  for (var i = 0; i < sortedBubbles.length; i += 1) {
-    var bubble = sortedBubbles[i];
+  for (var i = 0; i < bubbles.length; i += 1) {
+    var bubble = bubbles[i];
     this.add(bubble.renderNode)
   }
 
@@ -28,24 +31,65 @@ function BubbleView() {
   }.bind(this));
 
   this.showBubbles = function (jsonData) {
+    var defaultBubbleCount = 4
+    var imagesLength = jsonData.images.length
+    var lastIndex = defaultBubbleCount - 1
+
+    var topics = jsonData.topics;
+
     function _showNext(index) {
-      if (index === sortedBubbles.length) {
+      if (index === -1) {
         self._eventOutput.emit('finishedBubbling', jsonData);
       } else {
-        var surface = sortedBubbles[index].surface;
+        var surface = bubbles[index].surface;
         var rc = surface.renderController;
-        var nextIndex = index + 1;
+        var nextIndex = index - 1;
 
-        //TODO Apply background image or text to surface here
-        rc.show(surface, {duration: 150}, _showNext.bind(this, nextIndex));
+        surface.d3_svg.selectAll('defs').remove();
+        surface.d3_svg.selectAll('text').text('');
+
+        function getRandomArbitrary(min, max) { return Math.floor(Math.random() * (max - min) + min); }
+        var rgb = _.template('rgb(<%= r %>,<%= g %>,<%= b %>)')({
+            r: getRandomArbitrary(0,255)
+          , g: getRandomArbitrary(0,255)
+          , b: getRandomArbitrary(0,255)
+        });
+
+        surface.d3_svg.select('path').attr('fill', rgb);
+
+        if (topics) {
+          if (topics[index]) {
+            var words = topics[index].split(' ');
+
+            surface.d3_svg.select('text').text(words[0]);
+            surface.d3_svg.append('text')
+              .attr('x', 23)
+              .attr('y', 75)
+              .attr('font-size', '20px')
+              .attr('fill', 'white')
+              .attr('text-align', 'center')
+              .text(words[1])
+              ;
+          }
+        } else {
+          if (index < imagesLength) {
+             var imagePath = jsonData.images[index];
+             var imageFileName = imagePath.replace(/^.*[\\\/]/, '');
+
+             applyPattern(surface.d3_svg, imageFileName, imagePath, {
+               x:-10, y:0, width: 120, height: 120
+             });
+          }
+        }
+        rc.show(surface, {duration: 400}, _showNext.bind(this, nextIndex))
       }
     }
-    _showNext.bind(this,0)();
+    _showNext.bind(this, lastIndex)();
   };
 
   this._eventInput.on('hide-BubbleView', function () {
-    for (var i = 0; i < sortedBubbles.length; i += 1) {
-      var surface = sortedBubbles[i].surface;
+    for (var i = 0; i < bubbles.length; i += 1) {
+      var surface = bubbles[i].surface;
       var rc = surface.renderController;
       rc.hide({duration: 0});
     }
@@ -60,58 +104,38 @@ BubbleView.prototype.createBubble = function createBubble(coordinates, size, pro
   var x = coordinates[0];
   var y = coordinates[1];
   var z = coordinates[2];
+  console.log('create bubble');
+  console.log(coordinates);
 
   var renderNode = new RenderNode();
-
-  var draggable = new Draggable();
 
   var bubbleMod = new StateModifier({
     transform: Transform.translate(x, y, z)
   });
 
-  function genString (size, currentPosition, properties) {
-    //var string =  "<span style='display: inline-block; color: white;  margin-top:"+ size[1]/2 + "px; margin-left: " + (size[0]/2 - 50) + "px;'>" + currentPosition + ", z-index: " + properties.zIndex + " " + "</span>";
-    var string = "";
-    return string
-  }
-
-  var defaultProperties = {
-      borderRadius: '50%'
-    , border: '4px solid white'
-  };
+  var defaultProperties = {};
   var mergedProps = objectMerge(defaultProperties, properties);
 
+  var d3_svg = hexagon.createSVG();
   var surface = new Surface({
     size: size
-    , content: genString(size, [x,y], properties)
-    , properties: mergedProps
+    , content: d3_svg.node()
+    //, properties: mergedProps
   });
+  surface.d3_svg = d3_svg;
+  surface.sm = bubbleMod;
 
   var renderController = new RenderController();
+
+  renderController.inTransformFrom(function (progress) {
+    var scaleValue = -0.3 * Math.sin(progress * (4*Math.PI ));
+    var rotationMatrix = Transform.rotate(0, 0,scaleValue);
+    var origin = Transform.aboutOrigin([50,50, 0], rotationMatrix);
+    return origin;
+  });
   surface.renderController = renderController;
 
-  var trans = {
-    //method: 'snap',
-    period: 300,
-    dampingRatio: 0.3,
-    velocity: 0
-  };
-  surface.pipe(draggable);
-
-  draggable.on('update', function () {
-    var deltaPosition = this.getPosition();
-    var dX =  deltaPosition[0];
-    var dY =  deltaPosition[1];
-
-    var currentPosition = [x + dX, y + dY];
-    var span = genString(size, currentPosition, properties)
-
-    surface.setContent(span);
-    console.log(surface);
-  });
-  
   renderNode.add(bubbleMod).add(renderController).add(surface);
-
   return { renderNode:renderNode, surface: surface };
 }
 
@@ -119,7 +143,7 @@ BubbleView.prototype.bubblify =  function bubblify () {
   var bubbles = [];
   var properties = { backgroundColor: 'blue' , zIndex: 1000 };
 
-  var b1 = this.createBubble([-5, 34, 0], [300, 300], properties);
+  var b1 = this.createBubble([-8, 51, 0], [100, 100], properties);
   b1.surface.bubble_order = 6;
   bubbles.push(b1);
   b1.surface.on('click', function () {
@@ -128,7 +152,7 @@ BubbleView.prototype.bubblify =  function bubblify () {
   }.bind(this));
 
   var properties = { backgroundColor: 'red' , zIndex: 3000 };
-  var b2 = this.createBubble([201, 197, 0], [200, 200], properties);
+  var b2 = this.createBubble([46, 144, 0], [100, 100], properties);
   b2.surface.bubble_order = 5;
   bubbles.push(b2);
 
@@ -138,7 +162,7 @@ BubbleView.prototype.bubblify =  function bubblify () {
   }.bind(this));
 
   var properties = { backgroundColor: 'green' , zIndex: 2000 };
-  var b3 = this.createBubble([44, 298, 0], [200, 200], properties);
+  var b3 = this.createBubble([-8, 236, 0], [100, 100], properties);
   b3.surface.bubble_order = 4;
   bubbles.push(b3);
 
@@ -148,25 +172,31 @@ BubbleView.prototype.bubblify =  function bubblify () {
   }.bind(this));
 
   var properties = { backgroundColor: 'purple' , zIndex: 3500 };
-  var b4 = this.createBubble([205, 422, 0], [75, 75], properties);
+  var b4 = this.createBubble([46, 329, 0], [100, 100], properties);
   b4.surface.bubble_order = 3;
   bubbles.push(b4);
 
-  var properties = { backgroundColor: 'teal' , zIndex: 4000 };
-  var b5 = this.createBubble([223, 372, 0], [75, 75], properties);
-  b5.surface.bubble_order = 2;
-  bubbles.push(b5);
-
-  var properties = { backgroundColor: 'gray' , zIndex: 3500 };
-  var b6 = this.createBubble([282, 377, 0], [75, 75], properties);
-  b6.surface.bubble_order = 1;
-  bubbles.push(b6);
-
-  var properties = { backgroundColor: 'blue' , zIndex: 3000 };
-  var b7 = this.createBubble([264, 430, 0], [75, 75], properties);
-  b7.surface.bubble_order = 0;
-  bubbles.push(b7);
   return bubbles
+}
+
+function applyPattern(svg, patternId, href, settings) {
+  var defs = svg.append('svg:defs');
+  defs.append('svg:pattern')
+    .attr('id', patternId)
+    .attr('patternUnits', 'userSpaceOnUse')
+    .attr('width', settings.width)
+    .attr('height', settings.height)
+    .append('svg:image')
+    .attr('xlink:href', href)
+    .attr('x', settings.x)
+    .attr('y', settings.y)
+    .attr('width', settings.width)
+    .attr('height', settings.height);
+
+  var urlString = _.template('url(#<%= patternId %>)')({patternId: patternId});
+  svg.select('path').attr('fill', urlString);
+
+  return svg;
 }
 module.exports = BubbleView;
 

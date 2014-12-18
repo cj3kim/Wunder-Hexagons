@@ -1,15 +1,13 @@
 module.exports = {
-    contentCount: 4
-    , images: [
-          'images/team/chris.png'
-        , 'images/team/chris.png'
-        , 'images/team/chris.png'
-        , 'images/team/chris.png'
+      contentCount: 4
+    , topics: [
+          "Contact"
+        , "Address"
       ]
+    , images: []
     , text: [
-          "hello"
+        " <p> Want to talk about your project?</p> "
         , "world"
         , "test"
-        , "out"
       ]
 }

@@ -4,8 +4,12 @@ body {
   /*background-color: #fff;*/
   background-color: #002637;
 }
-
-
+p {
+  font-size: 20px;
+  line-height: 25px;
+  color: #fff;
+  font-family: 'Times New Roman', Times, serif;
+}
 
 .backfaceVisibility {
   -webkit-backface-visibility: visible;

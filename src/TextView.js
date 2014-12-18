@@ -9,19 +9,61 @@ var StateModifier = require('famous/modifiers/StateModifier');
 var objectMerge = require('object-merge');
 var _ = require('underscore');
 var loremIpsum = require('lorem-ipsum');
+var Easing           = require('famous/transitions/Easing');
+
+var Transitionable   = require('famous/transitions/Transitionable');
+var SpringTransition = require('famous/transitions/SpringTransition');
+Transitionable.registerMethod('spring', SpringTransition);
+
 
 function TextView() {
   View.apply(this, arguments);
 
   var _this = this;
+  var rotateModifier = new Modifier({transform : Transform.identity});
+  var state = new Transitionable(0);
+
+  rotateModifier.transformFrom(function () {
+    var stateValue = 0.3 * Math.sin(state.get());
+    return Transform.rotateX(stateValue);
+  });
+
   var renderController = new RenderController();
-  var textSurfaces = this.generateTextSurfaces();
+
+  var defaultEndState = 1;
+  renderController.inTransformFrom(function (progress) {
+    var y = -500 * (defaultEndState - progress);
+    var matrix = Transform.translate(0, y, 0);
+    var rotateX = 2.0 * (defaultEndState - progress);
+    var rotateMatrix = Transform.rotateX(rotateX);
+
+    return Transform.multiply4x4(matrix, rotateMatrix);
+  });
+
+  renderController.outTransformFrom(function (progress) {
+    var y = 500 * (defaultEndState - progress);
+    var matrix = Transform.translate(0, y, 0);
+    var rotateZ = 0.3 *(defaultEndState - progress);
+    var rotateMatrix = Transform.rotateZ(rotateZ);
+    return Transform.multiply4x4(matrix, rotateMatrix);
+
+  });
+
+
+  this.add(rotateModifier).add(renderController);
+
+  var textSurfaces = this.generateTextSurfaces(state);
 
   this._eventInput.on('finishedBubbling', function (jsonData) {
     console.log('finishedBubbling');
     console.log(jsonData);
-    //TODO update text surfaces here
-    renderController.show(textSurfaces[0], function () {
+
+    for (var i = 0; i < jsonData.text.length; i += 1) {
+      console.log(textSurfaces[i]);
+      textSurfaces[i].content = jsonData.text[i]
+    }
+
+    renderController.show(textSurfaces[0],{duration: 1000}, function () {
       _this._eventOutput.emit('shown-TextView');
     });
   });
@@ -34,34 +76,31 @@ function TextView() {
     renderController.show(textSurfaces[textIndex]);
   });
 
-  this.add(renderController);
 }
 
 TextView.prototype = Object.create(View.prototype);
 TextView.prototype.constructor = TextView;
 
-TextView.prototype.generateTextSurfaces = function () {
+TextView.prototype.generateTextSurfaces = function (state) {
   var textSurfaces = [];
-  var colors = ['green', 'brown', 'white'];
-
   for (var i = 0; i < 3; i += 1) {
-    var color = colors[i];
-
-    var liSettings = {count: 1, units: 'paragraphs'};
-    var compiled = _.template("<p> <%= l1 %> </p> <p> <%= l2 %> </p> <p> <%= l3 %> </p>");
-    var text = compiled({
-      l1: loremIpsum(liSettings),
-      l2: loremIpsum(liSettings),
-      l3: loremIpsum(liSettings), 
-    });
 
     var textSurface = new Surface({
-        size: [500, 600]
-      , content: text
+        size: [500, 425]
+      , content: ""
       , properties: {
             padding: '20px 30px'
-          , backgroundColor: color
+          , backgroundColor:"#002637" 
+          , borderRadius: '2%'
+          , border: '2px solid white '
       }
+    });
+
+    textSurface.on('mouseenter', function () {
+      state.set(0);
+      console.log(state.get());
+
+      state.set(3, {method : 'spring', dampingRatio : 0.5, period : 3000}); // spring
     });
 
     textSurfaces.push(textSurface);
